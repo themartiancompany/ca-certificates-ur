@@ -3,7 +3,7 @@
 
 pkgbase=ca-certificates
 pkgname=(ca-certificates-utils ca-certificates)
-pkgver=20170307
+pkgver=20180821
 pkgrel=1
 pkgdesc="Common CA certificates"
 url="https://src.fedoraproject.org/rpms/ca-certificates"
@@ -47,7 +47,9 @@ package_ca-certificates-utils() {
 
 package_ca-certificates() {
   pkgdesc+=" (default providers)"
-  depends=(ca-certificates-{mozilla,cacert})
+  depends=(ca-certificates-mozilla)
+  replaces=('ca-certificates-cacert<=20140824-4')
+  conflicts=('ca-certificates-cacert<=20140824-4')
 }
 
 # vim:set et sw=2:
