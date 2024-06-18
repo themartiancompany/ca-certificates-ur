@@ -6,12 +6,12 @@ pkgname=(
   ca-certificates-utils
   ca-certificates
 )
-pkgver=20220905
+pkgver=20240618
 pkgrel=1
 pkgdesc="Common CA certificates"
 url="https://src.fedoraproject.org/rpms/ca-certificates"
 arch=(any)
-license=(GPL)
+license=(GPL-2.0-or-later)
 makedepends=(
   asciidoc
   p11-kit
@@ -25,12 +25,12 @@ source=(
 b2sums=('82e3d728267d931dd8613f5e4944995fb1909dffdd61bce17c5c8aa0e8d14201d249cb25899ac631e6a44a6d2acc02e62bd17692fd7fd27e3c8fb9a7648c6004'
         '0de3d4ce83f00f95ea7b94f497403b4dc7ff5d0de33bdc76abe3bdd02280d6dc494c7ca4334cfdc5b91ab3fb0022c69f6809eca67d12e77048aa7f70252d479c'
         'a43766c7e451b3053abee99f8c9c526d984e20c1e60f1ef6e685805bbca46afa2725c7768a16ac5464778132fb13b43e59b2145ea89e4d2058f68cd2bf0abb1a'
-        '21a528aa19b378c6cd7fc2a7281f997236b117e37d087c95640a7ee27511ecaf33e282e0a03b75382c20aefbec9fb24b60a2c5282fdaa4cffe074cebd6e3eaf8'
+        'ead530282525ea699fcb814fe9fcfe7f47d44febef40703dd65372fd6e583c347f07135efe5244b1d9c400b235dc43a3f7b27abb4c87ef5faa61da6c6d744ebf'
         '9fdd34c3f99a01a0d12bb48595114def7685841f81871f5dbf56c433e19bb3acb733e108e6463b48425cd4b74a41ee961c927b24c2dce65f26a37baae5ed9eb9'
         '1fbefe367f9e59e7bc5886d07b7da8bd918c8b77ab0d2026813dad965294d2bb3fd4698d6b22e728d890044b98c0015e7328c050c5d96d0e7d2a3a1ae3f16362'
         '57e5f6485cde17139e3d1649bd05e1f1b7e260ec58137d41e91ac938bc728bed8ee72eacd0d03f1ccb8cd9e2a23df0df1b2f5fd46694530e1cb49325b05d68fd'
-        '7504993b03229da357e4c238baa5426195252a7ffa24f757f266ab5e1e530f1deabb55be6501f0fd9ef99fdbea4dbb189410358e17c7ab77186ab6032f7c16a1'
-        '3e684293c9ea704054be631ef531e1aa8a542eaa77559cb2bf3cb47bdab285f2eae3206028911b85248150e4cc4096b098a32663e0ddbe9ed5b11bd2d121a63a')
+        '31a8539ffb9fc2cdc840a079f8e5a8d5c0b45b36db33a835a2c5784d4151e33f6b5c36c44ff809932cc8ba130015a768f94e73a26f694a48a91cd82b540a7bbd'
+        '08a77b118db14f520a9a3fa8ee257eaa03fded9d7267e29836f1d5eeb65b2c875ec081eddc3e71473dd4ea50a0a43346c5a60a89362b02bab601d0e78331c7f8')
 
 build() {
   a2x -v -f manpage update-ca-trust.8.txt
@@ -42,7 +42,7 @@ package_ca-certificates-utils() {
     bash
     coreutils
     findutils
-    'p11-kit>=0.24.0'
+    p11-kit
   )
   provides=(
     ca-certificates
@@ -56,32 +56,42 @@ package_ca-certificates-utils() {
   install -Dt "$pkgdir/usr/share/man/man8" -m644 update-ca-trust.8
   install -Dt "$pkgdir/usr/share/libalpm/hooks" -m644 *.hook
 
+  local etcdir="$pkgdir/etc/$pkgbase"
+  local ssldir="$pkgdir/etc/ssl"
+  local usrdir="$pkgdir/usr/share/$pkgbase"
+
   # Trust source directories
-  install -Dm644 README.etc "$pkgdir/etc/$pkgbase/README"
-  install -Dm644 README.src "$pkgdir/etc/$pkgbase/trust-source/README"
-  install -Dm644 README.usr "$pkgdir/usr/share/$pkgbase/trust-source/README"
-  install -d "$pkgdir"/{etc,usr/share}/$pkgbase/trust-source/{anchors,blocklist}
+  install -Dm644 README.etc "$etcdir/README"
+  install -Dm644 README.src "$etcdir/trust-source/README"
+  install -Dm644 README.usr "$usrdir/trust-source/README"
+  install -d {"$etcdir","$usrdir"}/trust-source/{anchors,blocklist}
 
   # Directories used by update-ca-trust (aka "trust extract-compat")
-  install -Dm644 README.etcssl "$pkgdir/etc/ssl/README"
-  install -Dm644 README.java   "$pkgdir/etc/ssl/certs/java/README"
-  install -Dm644 README.extr   "$pkgdir/etc/$pkgbase/extracted/README"
+  install -Dm644 README.etcssl "$ssldir/README"
+  install -Dm644 README.java   "$ssldir/certs/java/README"
+  install -Dm644 README.extr   "$etcdir/extracted/README"
 
   # Compatibility link for OpenSSL using /etc/ssl as CAdir
   # Used in preference to the individual links in /etc/ssl/certs
-  ln -sr "$pkgdir/etc/$pkgbase/extracted/tls-ca-bundle.pem" "$pkgdir/etc/ssl/cert.pem"
+  ln -sr "$etcdir/extracted/tls-ca-bundle.pem" "$ssldir/cert.pem"
 
   # Compatibility link for legacy bundle (Debian)
-  ln -sr "$pkgdir/etc/$pkgbase/extracted/tls-ca-bundle.pem" "$pkgdir/etc/ssl/certs/ca-certificates.crt"
+  ln -sr "$etcdir/extracted/tls-ca-bundle.pem" "$ssldir/certs/ca-certificates.crt"
 
   # Compatibility link for legacy bundle (RHEL/Fedora)
-  ln -sr "$pkgdir/etc/$pkgbase/extracted/tls-ca-bundle.pem" "$pkgdir/etc/ssl/certs/ca-bundle.crt"
+  ln -sr "$etcdir/extracted/tls-ca-bundle.pem" "$ssldir/certs/ca-bundle.crt"
+
+  # FIXME: Make "$ssldir/certs/java/cacerts" a packaged symlink, too
 }
 
 package_ca-certificates() {
-  pkgdesc+=" (default providers)"
-  depends=(ca-certificates-mozilla)
-  conflicts=('ca-certificates-cacert<=20140824-4')
+  pkgdesc+=" - default providers"
+  depends=(
+    ca-certificates-mozilla
+  )
+  conflicts=(
+    'ca-certificates-cacert<=20140824-4'
+  )
   replaces=("${conflicts[@]}")
 }
 
