@@ -40,6 +40,7 @@ pkgname = ca-certificates-utils
 
 pkgname = ca-certificates
 	pkgdesc = Common CA certificates - default providers
+	license = CC0-1.0
 	depends = ca-certificates-mozilla
 	conflicts = ca-certificates-cacert<=20140824-4
 	replaces = 

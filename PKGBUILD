@@ -86,6 +86,7 @@ package_ca-certificates-utils() {
 
 package_ca-certificates() {
   pkgdesc+=" - default providers"
+  license=(CC0-1.0)
   depends=(
     ca-certificates-mozilla
   )
