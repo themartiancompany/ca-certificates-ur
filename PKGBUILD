@@ -1,6 +1,13 @@
+# SPDX-License-Identifier: AGPL-3.0
+#
+# Maintainer: Truocolo <truocolo@aol.com>
+# Maintainer: Pellegrino Prevete (tallero) <pellegrinoprevete@gmail.com>
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 # Contributor: Pierre Schmitz <pierre@archlinux.de>
 
+_os="$( \
+  uname \
+    -o)"
 pkgbase=ca-certificates
 pkgname=(
   ca-certificates-utils
@@ -14,8 +21,11 @@ arch=(any)
 license=(GPL-2.0-or-later)
 makedepends=(
   asciidoc
-  p11-kit
 )
+[[ "${_os}" == "GNU/Linux" ]] && \
+  makedepends+=(
+    p11-kit
+  )
 source=(
   40-update-ca-trust.hook
   README.{etc,etcssl,extr,java,src,usr}
@@ -42,8 +52,12 @@ package_ca-certificates-utils() {
     bash
     coreutils
     findutils
-    p11-kit
   )
+  if [[ "${_os}" == "GNU/Linux" ]]; then
+    depends+=(
+      p11-kit
+    )
+  fi
   provides=(
     ca-certificates
     ca-certificates-java
